@@ -1,0 +1,5 @@
+.idea
+etc/docker/data/solr/langchain
+etc/docker/langchain/data
+**/__pycache__
+**/*.egg-info
