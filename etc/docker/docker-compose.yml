@@ -19,9 +19,8 @@ services:
     ports:
      - "8983:8983"
     volumes:
-      - ./langchain:/opt/solr/server/solr/configsets/langchain
       - ./data/solr:/var/solr/data
     entrypoint:
       - bash
       - "-c"
-      - solr-precreate langchain /opt/solr/server/solr/configsets/langchain
+      - solr-precreate langchain

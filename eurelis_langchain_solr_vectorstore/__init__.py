@@ -33,7 +33,7 @@ class Solr(VectorStore):
     Example:
         .. code-block:: python
 
-        from eurelis_langchain_solr_vetorstore import Solr
+        from eurelis_langchain_solr_vectorstore import Solr
         from langchain.embeddings.openai import OpenAIEmbeddings
 
         embeddings = OpenAIEmbeddings()
