@@ -1,4 +1,5 @@
 import json
+import logging
 from typing import Optional, List, Tuple
 
 import requests
@@ -6,6 +7,9 @@ from langchain.schema import Document
 
 from .types import OneOrMany, ID, IDs, Embedding, Metadata, validate_ids, maybe_cast_one_to_many, validate_embeddings, \
     validate_metadatas
+
+
+logger = logging.getLogger()
 
 
 class SolrCore:
@@ -85,7 +89,6 @@ class SolrCore:
         }
 
         if where:
-            # TODO: to check
             fq_values = []
             for field, value in where.items():
                 field_name = SolrCore.field_name_for_metadata_key(field, type(value))
@@ -99,6 +102,8 @@ class SolrCore:
             'params': query_params
         }
 
+        logging.debug(f"Solr search using params {json.dumps(query_params)}")
+
         x = requests.post(url, json=params)
 
         data_json = json.loads(x.text)
@@ -107,8 +112,6 @@ class SolrCore:
         results_metadatas = []
         results_distances = []
         results_embeddings = []
-
-        print(x.text)
 
         for doc in data_json['response']['docs']:
             page_content = doc.get(self._page_content_field)
@@ -131,8 +134,6 @@ class SolrCore:
             'distances': [results_distances],
             'embeddings': [results_embeddings]
         }
-
-        print(results_distances)
 
         return results
 
@@ -191,10 +192,10 @@ class SolrCore:
                 )
             embeddings = self._embedding_function(documents)
 
-        # if embeddings is None:
-        #     raise ValueError(
-        #         "Something went wrong. Embeddings should be computed at this point"
-        #     )
+        if embeddings is None:
+            raise ValueError(
+                "Something went wrong. Embeddings should be computed at this point"
+            )
 
         return ids, embeddings, metadatas, documents  # type: ignore
 
@@ -235,7 +236,7 @@ class SolrCore:
         call_url = self.get_handler_url("update/json?commit=true")
 
         response = requests.post(call_url, json=solr_docs)
-        print(response)
+        logging.debug(f"Solr update response {response.text}")
 
     def delete(self, ids: OneOrMany[ID]) -> bool:
         ids_to_delete = maybe_cast_one_to_many(ids)
@@ -244,11 +245,15 @@ class SolrCore:
         }
         response = requests.post(self.get_handler_url("update?commit=true"), json=json_body)
 
+        logging.debug(f"Solr delete response {response.text}")
+
         return response.status_code == 200
 
     def empty(self) -> bool:
-        json_body = { "delete": {"query":"*:*"} }
+        json_body = {"delete": {"query":"*:*"}}
 
         response = requests.post(self.get_handler_url("update?commit=true"), json=json_body)
+
+        logging.debug(f"Solr delete all response {response.text}")
 
         return response.status_code == 200
