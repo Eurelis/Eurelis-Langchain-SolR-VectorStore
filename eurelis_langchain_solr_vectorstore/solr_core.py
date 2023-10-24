@@ -75,7 +75,7 @@ class SolrCore:
         # TODO: do we need to check suffix consistency here?
         return work_name[:underscore_position]
 
-    def vector_search(self, vector: List[float], n_results: int = 4, where: dict[str, str] = None) -> list:
+    def vector_search(self, vector: List[float], n_results: int = 4, where: Optional[dict[str, str]] = None) -> list:
         url = self.get_handler_url("select")
 
         query_params = {
