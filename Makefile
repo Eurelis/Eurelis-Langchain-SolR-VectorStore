@@ -16,7 +16,17 @@ update-venv: init-venv
 	pip install --upgrade pip &&\
 	pip install -r src/requirements.txt
 
-init-project: update-venv
+install-black: update-venv
+	@echo "***** $@"
+	@source .venv/bin/activate &&\
+	pip install black
+
+install-pylint: update-venv
+	@echo "***** $@"
+	@source .venv/bin/activate &&\
+	pip install pylint
+	
+init-project: update-venv install-black install-pylint
 
 #
 # Build

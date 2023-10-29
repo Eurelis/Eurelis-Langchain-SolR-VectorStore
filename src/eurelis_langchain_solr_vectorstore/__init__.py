@@ -2,16 +2,7 @@ from __future__ import annotations
 
 import logging
 import uuid
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Tuple,
-    Type
-)
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Type
 
 import numpy as np
 
@@ -62,7 +53,7 @@ class Solr(VectorStore):
 
         core_kwargs = core_kwargs if core_kwargs else {}
 
-        self._core = SolrCore(**core_kwargs) # ToDO configuration
+        self._core = SolrCore(**core_kwargs)  # ToDO configuration
 
     @property
     def embeddings(self) -> Optional[Embeddings]:
@@ -389,9 +380,7 @@ class Solr(VectorStore):
         Returns:
             Solr: Solr vectorstore.
         """
-        solr = cls(
-
-        )
+        solr = cls()
         solr.add_texts(texts=texts, metadatas=metadatas, ids=ids)
         return solr
 

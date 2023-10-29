@@ -5,8 +5,17 @@ from typing import Optional, List, Tuple
 import requests
 from langchain.schema import Document
 
-from .types import OneOrMany, ID, IDs, Embedding, Metadata, validate_ids, maybe_cast_one_to_many, validate_embeddings, \
-    validate_metadatas
+from .types import (
+    OneOrMany,
+    ID,
+    IDs,
+    Embedding,
+    Metadata,
+    validate_ids,
+    maybe_cast_one_to_many,
+    validate_embeddings,
+    validate_metadatas,
+)
 
 
 logger = logging.getLogger()
@@ -43,7 +52,7 @@ class SolrCore:
 
     @staticmethod
     def field_name_for_metadata_key(metadata_key: str, type_: type) -> str:
-        negative_field = metadata_key[0] == '-'  # case of empty field search
+        negative_field = metadata_key[0] == "-"  # case of empty field search
         if negative_field:
             metadata_key = metadata_key[1:]
 
@@ -57,7 +66,9 @@ class SolrCore:
         elif type_ is bool:
             base_name += "b"
         else:
-            raise ValueError(f"Invalid type {type_} given, only str, int, boolean and float supported")
+            raise ValueError(
+                f"Invalid type {type_} given, only str, int, boolean and float supported"
+            )
 
         if negative_field:
             return f"-{base_name}"
@@ -68,24 +79,38 @@ class SolrCore:
     def metadata_key_for_field_name(field_name: str) -> Optional[str]:
         if not field_name.startswith(SolrCore._METADATA_FIELD_PREFIX):
             return None
-        work_name = field_name[SolrCore._METADATA_FIELD_PREFIX_LENGTH:]  # remove prefix
+        work_name = field_name[
+            SolrCore._METADATA_FIELD_PREFIX_LENGTH :
+        ]  # remove prefix
 
         underscore_position = work_name.rfind("_")
         underscore_relative_position = len(work_name) - underscore_position
 
         if underscore_relative_position >= 3:
-            raise ValueError(f"Unsupported solr metadata field suffix in field {field_name}")
+            raise ValueError(
+                f"Unsupported solr metadata field suffix in field {field_name}"
+            )
 
         # TODO: do we need to check suffix consistency here?
         return work_name[:underscore_position]
 
-    def vector_search(self, vector: List[float], n_results: int = 4, where: Optional[dict[str, str]] = None) -> list:
+    def vector_search(
+        self,
+        vector: List[float],
+        n_results: int = 4,
+        where: Optional[dict[str, str]] = None,
+    ) -> list:
         url = self.get_handler_url("select")
 
         query_params = {
-            'q': '{!knn f=' + self._vector_field + ' topK=' + str(n_results) + '}' + str(vector),
-            'fl': '*, score',
-            'output': 'json'
+            "q": "{!knn f="
+            + self._vector_field
+            + " topK="
+            + str(n_results)
+            + "}"
+            + str(vector),
+            "fl": "*, score",
+            "output": "json",
         }
 
         if where:
@@ -96,11 +121,9 @@ class SolrCore:
                     continue
                 fq_values.append(f"{field_name}:{value}")
 
-            query_params['fq'] = " AND ".join(fq_values)
+            query_params["fq"] = " AND ".join(fq_values)
 
-        params = {
-            'params': query_params
-        }
+        params = {"params": query_params}
 
         logging.debug(f"Solr search using params {json.dumps(query_params)}")
 
@@ -113,7 +136,7 @@ class SolrCore:
         results_distances = []
         results_embeddings = []
 
-        for doc in data_json['response']['docs']:
+        for doc in data_json["response"]["docs"]:
             page_content = doc.get(self._page_content_field)
             results_documents.append(page_content)
 
@@ -125,14 +148,14 @@ class SolrCore:
                 metadata[metadata_key] = value
 
             results_metadatas.append(metadata)
-            results_distances.append(doc.get('score', 0))
+            results_distances.append(doc.get("score", 0))
             results_embeddings.append(doc.get(self._vector_field))
 
         results = {
-            'documents': [results_documents],
-            'metadatas': [results_metadatas],
-            'distances': [results_distances],
-            'embeddings': [results_embeddings]
+            "documents": [results_documents],
+            "metadatas": [results_metadatas],
+            "distances": [results_distances],
+            "embeddings": [results_embeddings],
         }
 
         return results
@@ -223,12 +246,14 @@ class SolrCore:
         )
 
         solr_docs = []
-        for doc_id, embedding, metadata, document in zip(ids, embeddings, metadatas, documents):
+        for doc_id, embedding, metadata, document in zip(
+            ids, embeddings, metadatas, documents
+        ):
             solr_doc = {
-                'id': doc_id,
+                "id": doc_id,
                 self._vector_field: embedding,
                 self._page_content_field: document,
-                **SolrCore.metadata_to_solr_fields(metadata)
+                **SolrCore.metadata_to_solr_fields(metadata),
             }
 
             solr_docs.append(solr_doc)
@@ -240,19 +265,21 @@ class SolrCore:
 
     def delete(self, ids: OneOrMany[ID]) -> bool:
         ids_to_delete = maybe_cast_one_to_many(ids)
-        json_body = {
-            'delete': ids_to_delete
-        }
-        response = requests.post(self.get_handler_url("update?commit=true"), json=json_body)
+        json_body = {"delete": ids_to_delete}
+        response = requests.post(
+            self.get_handler_url("update?commit=true"), json=json_body
+        )
 
         logging.debug(f"Solr delete response {response.text}")
 
         return response.status_code == 200
 
     def empty(self) -> bool:
-        json_body = {"delete": {"query":"*:*"}}
+        json_body = {"delete": {"query": "*:*"}}
 
-        response = requests.post(self.get_handler_url("update?commit=true"), json=json_body)
+        response = requests.post(
+            self.get_handler_url("update?commit=true"), json=json_body
+        )
 
         logging.debug(f"Solr delete all response {response.text}")
 
