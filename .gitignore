@@ -1,5 +1,18 @@
+# Editor
+.vscode
 .idea
+
+# Python venv
+**/__pycache__
+.venv/
+.env
+.python-version
+
+# Distribution
+**/*.egg-info
+dist/
+
+
+# Misc
 etc/docker/data/solr/langchain/data
 etc/docker/langchain/data
-**/__pycache__
-**/*.egg-info

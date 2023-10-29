@@ -2,14 +2,14 @@
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
-
 [project]
 name = "eurelis_langchain_solr_vectorstore"
 version = "0.0.1"
 authors = [
   { name="Jérôme DIAZ", email="j.diaz@eurelis.com" },
+  { name="Vincent LAMBERT", email="v.lambert@eurelis.com" }
 ]
-description = "Library to provide a Solr based vector store for langchain"
+description = "Library that provide a Solr based vector store for Langchain"
 readme = "README.md"
 requires-python = ">=3.11"
 classifiers = [
@@ -21,4 +21,7 @@ classifiers = [
 [project.urls]
 "Homepage" = "https://github.com/Eurelis/Eurelis-Langchain-SolR-VectorStore"
 "Bug Tracker" = "https://github.com/Eurelis/Eurelis-Langchain-SolR-VectorStore/issues"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
 
