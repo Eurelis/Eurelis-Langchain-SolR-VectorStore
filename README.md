@@ -59,7 +59,12 @@ The *vector_search* method take an optional *where* param expecting a dict:
 Example using the vector store as a retriever:
 
 ```python
-retriever = solr.as_retriever(search_kwargs: {'language': 'en', year: 2000})
+retriever = vector_store.as_retriever()
+```
+
+Example adding filter instructions to the retriever
+```python
+retriever = vector_store.as_retriever(search_kwargs={'filter': {'language': 'en', 'year': 2000}})
 ```
 
 ## Docker
