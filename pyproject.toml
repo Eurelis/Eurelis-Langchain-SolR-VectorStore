@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "eurelis_langchain_solr_vectorstore"
-version = "0.0.1"
+version = "0.0.2"
 authors = [
   { name="Jérôme DIAZ", email="j.diaz@eurelis.com" },
   { name="Vincent LAMBERT", email="v.lambert@eurelis.com" }

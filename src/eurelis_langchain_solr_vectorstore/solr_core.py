@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Mapping, Any
 
 import requests
 from langchain.schema import Document
@@ -34,13 +34,17 @@ class SolrCore:
         self._vector_field = kwargs.get("vector_field", "vector")
         self._core_name = kwargs.get("core_name", "langchain")
         self._url_base = kwargs.get("url_base", "http://localhost:8983/solr")
+        self._query_handler = kwargs.get("query_handler", "select")
+        self._update_handler = kwargs.get("update_handler", "update")
 
     def get_handler_url(self, handler: str):
         return f"{self._url_base}/{self._core_name}/{handler}"
 
     @staticmethod
-    def metadata_to_solr_fields(metadata: dict) -> dict:
-        solr_dict = dict()
+    def metadata_to_solr_fields(
+        metadata: Mapping[str, str | int | float | bool]
+    ) -> dict:
+        solr_dict = {}
         for key, value in metadata.items():
             try:
                 field_name = SolrCore.field_name_for_metadata_key(key, type(value))
@@ -99,8 +103,8 @@ class SolrCore:
         vector: List[float],
         n_results: int = 4,
         where: Optional[dict[str, str]] = None,
-    ) -> list:
-        url = self.get_handler_url("select")
+    ) -> Mapping[str, list[Any]]:
+        url = self.get_handler_url(self._query_handler)
 
         query_params = {
             "q": "{!knn f="
@@ -227,7 +231,7 @@ class SolrCore:
         ids: OneOrMany[ID],
         embeddings: Optional[OneOrMany[Embedding]] = None,
         metadatas: Optional[OneOrMany[Metadata]] = None,
-        documents: Optional[OneOrMany[Document]] = None,
+        documents: Optional[OneOrMany[str]] = None,
     ) -> None:
         """Update the embeddings, metadatas or documents for provided ids, or create them if they don't exist.
 
@@ -258,7 +262,7 @@ class SolrCore:
 
             solr_docs.append(solr_doc)
 
-        call_url = self.get_handler_url("update/json?commit=true")
+        call_url = self.get_handler_url(f"{self._update_handler}/json?commit=true")
 
         response = requests.post(call_url, json=solr_docs)
         logging.debug(f"Solr update response {response.text}")
@@ -267,7 +271,7 @@ class SolrCore:
         ids_to_delete = maybe_cast_one_to_many(ids)
         json_body = {"delete": ids_to_delete}
         response = requests.post(
-            self.get_handler_url("update?commit=true"), json=json_body
+            self.get_handler_url(f"{self._update_handler}?commit=true"), json=json_body
         )
 
         logging.debug(f"Solr delete response {response.text}")
@@ -278,7 +282,7 @@ class SolrCore:
         json_body = {"delete": {"query": "*:*"}}
 
         response = requests.post(
-            self.get_handler_url("update?commit=true"), json=json_body
+            self.get_handler_url(f"{self._update_handler}?commit=true"), json=json_body
         )
 
         logging.debug(f"Solr delete all response {response.text}")

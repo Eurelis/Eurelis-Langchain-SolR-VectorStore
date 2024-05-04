@@ -11,7 +11,7 @@ from langchain.schema.embeddings import Embeddings
 from langchain.schema.vectorstore import VectorStore
 from langchain.vectorstores.utils import maximal_marginal_relevance
 
-from .types import _results_to_docs, _results_to_docs_and_scores
+from .types import _results_to_docs, _results_to_docs_and_scores, Metadata
 from .solr_core import SolrCore
 
 logger = logging.getLogger()
@@ -35,10 +35,12 @@ class Solr(VectorStore):
                 'vector_field: 'vector', # name of the solr field to store the vector in
                 'core_name': 'langchain', # name of the solr core
                 'url_base': 'http://localhost:8983/solr' # base url to access solr
+                'query_handler': 'select' # select handler to query solr
+                'update_handler': 'update' # update handler to query solr
             }
         )
     Args:
-        embeddings:Embeddings instance,
+        embedding_function: Embeddings instance,
         core_kwargs: arguments to construct the solr core handler
     """
 
@@ -53,7 +55,7 @@ class Solr(VectorStore):
 
         core_kwargs = core_kwargs if core_kwargs else {}
 
-        self._core = SolrCore(**core_kwargs)  # ToDO configuration
+        self._core = SolrCore(**core_kwargs)
 
     @property
     def embeddings(self) -> Optional[Embeddings]:
@@ -97,7 +99,7 @@ class Solr(VectorStore):
                 else:
                     empty_ids.append(idx)
             if non_empty_ids:
-                metadatas = [metadatas[idx] for idx in non_empty_ids]
+                metadatas: List[Metadata] = [metadatas[idx] for idx in non_empty_ids]
                 texts_with_metadatas = [texts[idx] for idx in non_empty_ids]
                 embeddings_with_metadatas = (
                     [embeddings[idx] for idx in non_empty_ids] if embeddings else None
@@ -343,7 +345,7 @@ class Solr(VectorStore):
             documents (List[Document]): List of documents to update.
         """
         text = [document.page_content for document in documents]
-        metadata = [document.metadata for document in documents]
+        metadata: List[Metadata] = [document.metadata for document in documents]
         if self._embedding_function is None:
             raise ValueError(
                 "For update, you must specify an embedding function on creation."
@@ -353,8 +355,8 @@ class Solr(VectorStore):
         self._core.upsert(
             ids=ids,
             embeddings=embeddings,
-            documents=text,
             metadatas=metadata,
+            documents=text,
         )
 
     @classmethod
@@ -380,7 +382,12 @@ class Solr(VectorStore):
         Returns:
             Solr: Solr vectorstore.
         """
-        solr = cls()
+        core_kwargs = kwargs.get("core_kwargs")
+
+        if embedding is None:
+            raise ValueError("Embedding function is required.")
+
+        solr = cls(embedding, core_kwargs)
         solr.add_texts(texts=texts, metadatas=metadatas, ids=ids)
         return solr
 

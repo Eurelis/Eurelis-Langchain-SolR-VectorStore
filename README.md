@@ -33,7 +33,9 @@ vector_store = Solr(embeddings, core_kwargs={
     'page_content_field': 'text_t',  # field containing the text content
     'vector_field': 'vector',        # field containing the embeddings of the text content
     'core_name': 'langchain',        # core name
-    'url_base': 'http://localhost:8983/solr' # base url to access solr
+    'url_base': 'http://localhost:8983/solr', # base url to access solr
+    'query_handler': 'select', # handler to use to query solr
+    'update_handler': 'update' # update handler for solr
 })  # with custom default core configuration
 ```
 
