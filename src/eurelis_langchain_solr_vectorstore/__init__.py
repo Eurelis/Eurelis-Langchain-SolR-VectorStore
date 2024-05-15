@@ -37,6 +37,7 @@ class Solr(VectorStore):
                 'url_base': 'http://localhost:8983/solr' # base url to access solr
                 'query_handler': 'select' # select handler to query solr
                 'update_handler': 'update' # update handler to query solr
+                'metadata_fields': [] # additional solr fields to consider as metadata, ie ['id']
             }
         )
     Args:

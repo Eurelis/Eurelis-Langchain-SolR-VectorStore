@@ -36,6 +36,7 @@ class SolrCore:
         self._url_base = kwargs.get("url_base", "http://localhost:8983/solr")
         self._query_handler = kwargs.get("query_handler", "select")
         self._update_handler = kwargs.get("update_handler", "update")
+        self._metadata_fields = set(kwargs.get("metadata_fields", []))
 
     def get_handler_url(self, handler: str):
         return f"{self._url_base}/{self._core_name}/{handler}"
@@ -146,6 +147,10 @@ class SolrCore:
 
             metadata = {}
             for solr_field, value in doc.items():
+                if solr_field in self._metadata_fields:
+                    metadata[solr_field] = value
+                    continue
+
                 metadata_key = SolrCore.metadata_key_for_field_name(solr_field)
                 if not metadata_key or not isinstance(value, (str, int, float, bool)):
                     continue
